@@ -112,28 +112,44 @@ class DataValidation:
 
             overall_status = train_status and test_status and drift_status and train_num_status and test_num_status
 
-            
-            dir_path = os.path.dirname(self.data_validation_config.valid_train_file_path)
-            os.makedirs(dir_path, exist_ok=True)
 
-            train_dataframe.to_csv(
-                self.data_validation_config.valid_train_file_path, index = False, header=True
-            )
-            
-            test_dataframe.to_csv(
-                self.data_validation_config.valid_test_file_path, index = False, header=True
-            )
-        
 
-            data_validation_artifact = DataValidationArtifact(
-                validation_status=overall_status, 
-                valid_train_file_path=self.data_validation_config.valid_train_file_path, 
-                valid_test_file_path = self.data_validation_config.valid_test_file_path, 
-                invalid_train_file_path = None, 
-                invalid_test_file_path=None, 
-                drift_report_file_path=self.data_validation_config.drift_report_file_path, 
-            )
+            if overall_status:
+
+                dir_path = os.path.dirname(self.data_validation_config.valid_train_file_path)
+                os.makedirs(dir_path, exist_ok=True)
+
+                # Save to valid directory
+                train_dataframe.to_csv(self.data_validation_config.valid_train_file_path, index=False, header=True)
+                test_dataframe.to_csv(self.data_validation_config.valid_test_file_path, index=False, header=True)
+
+                data_validation_artifact = DataValidationArtifact(
+                    validation_status=True,
+                    valid_train_file_path=self.data_validation_config.valid_train_file_path,
+                    valid_test_file_path=self.data_validation_config.valid_test_file_path,
+                    invalid_train_file_path=None,
+                    invalid_test_file_path=None,
+                    drift_report_file_path=self.data_validation_config.drift_report_file_path,
+                )
+            else:
+
+                dir_path = os.path.dirname(self.data_validation_config.invalid_train_file_path)
+                os.makedirs(dir_path, exist_ok=True)
+                # Save to invalid directory
+                train_dataframe.to_csv(self.data_validation_config.invalid_train_file_path, index=False, header=True)
+                test_dataframe.to_csv(self.data_validation_config.invalid_test_file_path, index=False, header=True)
+
+                data_validation_artifact = DataValidationArtifact(
+                    validation_status=False,
+                    valid_train_file_path=None,
+                    valid_test_file_path=None,
+                    invalid_train_file_path=self.data_validation_config.invalid_train_file_path,
+                    invalid_test_file_path=self.data_validation_config.invalid_test_file_path,
+                    drift_report_file_path=self.data_validation_config.drift_report_file_path,
+                )
+
             return data_validation_artifact
+        
         except Exception as e:
             raise NetworkSecurityException(e, sys)
         
