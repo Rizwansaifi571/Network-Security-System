@@ -4,7 +4,8 @@ from src.logging.logger import logging
 from src.components.data_ingestion import DataIngestion
 from src.components.data_validation import DataValidation
 from src.components.data_tranformation import DataTransformation
-from src.entity.config_entity import DataIngestionConfig, TrainingPipelineConfig, DataValidationConfig, DataTransformationConfig
+from src.components.model_trainer import Modeltrainer
+from src.entity.config_entity import DataIngestionConfig, TrainingPipelineConfig, DataValidationConfig, DataTransformationConfig, ModelTrainerConfig
 
 if __name__ == "__main__":
     try:
@@ -29,6 +30,14 @@ if __name__ == "__main__":
         data_transformation_artifact = data_transformation.initiate_data_tranformation()
         logging.info("Data Transformation Complete")
         print(data_transformation_artifact, '\n')
+
+        model_trainer_config = ModelTrainerConfig(training_pipeline_config)
+        model_trainer = Modeltrainer(model_trainer_config, data_transformation_artifact)
+        logging.info("Initiate Model Training")
+        model_training_artifact = model_trainer.initiate_model_trainer()
+        logging.info("Model Training Complete")
+        print(model_training_artifact, '\n')
+
 
 
     except Exception as e:
