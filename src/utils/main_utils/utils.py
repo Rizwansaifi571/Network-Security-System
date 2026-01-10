@@ -4,7 +4,7 @@ import os, sys, numpy as np, pickle
 from src.logging.logger import logging
 from src.exception.exception import NetworkSecurityException
 
-from sklearn.metrics import r2_score
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import GridSearchCV
 
 
@@ -81,8 +81,8 @@ def evaluate_model(X_train, y_train, X_test, y_test, models, param):
             model = list(models.values())[i]
             para = param[model_name]
 
-            # Run GridSearchCV
-            gs = GridSearchCV(model, para, cv=3)
+            # Run GridSearchCV with proper scoring
+            gs = GridSearchCV(model, para, cv=5, scoring='f1', n_jobs=-1)
             gs.fit(X_train, y_train)
 
             # Update model with best params and fit
@@ -93,18 +93,15 @@ def evaluate_model(X_train, y_train, X_test, y_test, models, param):
             y_train_pred = model.predict(X_train)
             y_test_pred = model.predict(X_test)
 
-            # Metrics (classification)
-            train_model_score = r2_score(y_train, y_train_pred)
-            test_model_score = r2_score(y_test, y_test_pred)
+            # Metrics (classification) - using accuracy instead of r2_score
+            train_model_score = accuracy_score(y_train, y_train_pred)
+            test_model_score = accuracy_score(y_test, y_test_pred)
 
             # Save report and tuned model
             report[model_name] = test_model_score
             tuned_models[model_name] = model
 
         return report, tuned_models
-
-    except Exception as e:
-        raise e
     
     except Exception as e:
         raise NetworkSecurityException(e, sys)

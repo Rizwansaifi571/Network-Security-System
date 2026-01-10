@@ -28,30 +28,67 @@ class Modeltrainer:
 
     def train_model(self, X_train, y_train, X_test, y_test):
         models = {
-            "Random Forest": RandomForestClassifier(verbose = 1), 
-            "Decision Tree": DecisionTreeClassifier(), 
-            "Gradient Boosting": GradientBoostingClassifier(verbose=1), 
-            "Logistic Regression": LogisticRegression(verbose=1),
-            "AdaBoost": AdaBoostClassifier()
+            "Random Forest": RandomForestClassifier(verbose = 1, random_state=42), 
+            "Decision Tree": DecisionTreeClassifier(random_state=42), 
+            "Gradient Boosting": GradientBoostingClassifier(verbose=1, random_state=42), 
+            "Logistic Regression": LogisticRegression(verbose=1, max_iter=1000, random_state=42),
+            "AdaBoost": AdaBoostClassifier(random_state=42)
         }
 
-        params = {
+        # params = {
+        #     "Decision Tree": {
+        #         'criterion':['gini', 'entropy'],
+        #         'max_depth': [3, 5, 7, 10],
+        #         'min_samples_split': [2, 5, 10],
+        #         'min_samples_leaf': [1, 2, 4],
+        #         'max_features':['sqrt','log2']
+        #     },
+        #     "Random Forest":{
+        #         'criterion':['gini', 'entropy'],
+        #         'max_depth': [10, 20, 30],
+        #         'min_samples_split': [2, 5, 10],
+        #         'min_samples_leaf': [1, 2, 4],
+        #         'max_features':['sqrt','log2'],
+        #         'n_estimators': [50, 100, 200]
+        #     },
+        #     "Gradient Boosting":{
+        #         'learning_rate':[0.01, 0.05, 0.1],
+        #         'n_estimators': [50, 100, 200],
+        #         'max_depth': [3, 5, 7],
+        #         'min_samples_split': [2, 5],
+        #         'min_samples_leaf': [1, 2],
+        #         'subsample':[0.8, 0.9, 1.0],
+        #         'max_features':['sqrt','log2']
+        #     },
+        #     "Logistic Regression":{
+        #         'C': [0.01, 0.1, 1, 10, 100],
+        #         'penalty': ['l2'],
+        #         'solver': ['lbfgs', 'liblinear']
+        #     },
+        #     "AdaBoost":{
+        #         'learning_rate':[0.01, 0.05, 0.1, 0.5, 1.0],
+        #         'n_estimators': [50, 100, 200]
+        #     }
+        # }
+
+        params={
             "Decision Tree": {
                 'criterion':['gini', 'entropy', 'log_loss'],
-                'splitter':['best','random'],
-                'max_features':['sqrt','log2'],
+                # 'splitter':['best','random'],
+                # 'max_features':['sqrt','log2'],
             },
             "Random Forest":{
-                'criterion':['gini', 'entropy', 'log_loss'],
-                'max_features':['sqrt','log2',None],
+                # 'criterion':['gini', 'entropy', 'log_loss'],
+                
+                # 'max_features':['sqrt','log2',None],
                 'n_estimators': [8,16,32,128,256]
             },
             "Gradient Boosting":{
-                'loss':['log_loss', 'exponential'],
+                # 'loss':['log_loss', 'exponential'],
                 'learning_rate':[.1,.01,.05,.001],
                 'subsample':[0.6,0.7,0.75,0.85,0.9],
-                'criterion':['squared_error', 'friedman_mse'],
-                'max_features':['auto','sqrt','log2'],
+                # 'criterion':['squared_error', 'friedman_mse'],
+                # 'max_features':['auto','sqrt','log2'],
                 'n_estimators': [8,16,32,64,128,256]
             },
             "Logistic Regression":{},
@@ -59,6 +96,7 @@ class Modeltrainer:
                 'learning_rate':[.1,.01,.001],
                 'n_estimators': [8,16,32,64,128,256]
             }
+            
         }
 
         model_report, tuned_model = evaluate_model(X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test, models=models, param=params)

@@ -73,7 +73,7 @@ class DataTransformation:
 
             # Testing DataFrame
             input_feature_test_df = test_df.drop(TARGET_COLUMN, axis = 1)
-            target_feature_test_df = test_df[TARGET_COLUMN]
+            target_feature_test_df = test_df[TARGET_COLUMN].replace(-1, 0)
 
             preprocessor = DataTransformation.get_data_transformer_object()
             preprocessor_object = preprocessor.fit(input_feature_train_df)
