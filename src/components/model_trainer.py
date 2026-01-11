@@ -19,6 +19,13 @@ import mlflow
 import mlflow.sklearn
 from mlflow.models.signature import infer_signature
 
+import dagshub
+dagshub.init(repo_owner='Rizwansaifi571', repo_name='Network-Security-System', mlflow=True)
+
+# Configure MLflow
+# mlflow.set_tracking_uri("file:./mlruns")
+mlflow.set_experiment("Network-Security-System")
+
 
 
 class Modeltrainer:
@@ -83,10 +90,6 @@ class Modeltrainer:
             logging.info(f"MLflow tracking completed for {best_model_name}")
 
     def train_model(self, X_train, y_train, X_test, y_test):
-        # Configure MLflow
-        mlflow.set_tracking_uri("file:./mlruns")
-        mlflow.set_experiment("Network-Security-System")
-        
         models = {
             "Random Forest": RandomForestClassifier(verbose = 1, random_state=42), 
             "Decision Tree": DecisionTreeClassifier(random_state=42), 
