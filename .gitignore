@@ -4,6 +4,7 @@ logs
 Network_Security_System.egg-info
 Artifacts
 final_model
+mlruns
 
 # Python cache and compiled files
 __pycache__/

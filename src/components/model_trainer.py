@@ -15,6 +15,10 @@ warnings.filterwarnings('ignore')
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier, RandomForestClassifier
+import mlflow
+import mlflow.sklearn
+from mlflow.models.signature import infer_signature
+
 
 
 class Modeltrainer:
@@ -26,7 +30,63 @@ class Modeltrainer:
             raise NetworkSecurityException(e, sys)
         
 
+    def track_mlflow(self, best_model, best_model_name, train_metric, test_metric, model_params, X_train, y_train):
+        """
+        Track ML experiments with comprehensive metrics and model information.
+        
+        Args:
+            best_model: Trained model object
+            best_model_name: Name of the best model
+            train_metric: Classification metrics for training data
+            test_metric: Classification metrics for test data
+            model_params: Dictionary of model hyperparameters
+            X_train: Training features (for signature inference)
+            y_train: Training labels (for signature inference)
+        """
+        with mlflow.start_run():
+            # Log model name and tags
+            mlflow.set_tag("model_name", best_model_name)
+            mlflow.set_tag("model_type", "classification")
+            mlflow.set_tag("framework", "sklearn")
+            
+            # Log model parameters
+            mlflow.log_params(model_params)
+            
+            # Log training metrics
+            mlflow.log_metric("train_f1_score", train_metric.f1_score)
+            mlflow.log_metric("train_precision", train_metric.precision_score)
+            mlflow.log_metric("train_recall", train_metric.recall_score)
+            
+            # Log test metrics
+            mlflow.log_metric("test_f1_score", test_metric.f1_score)
+            mlflow.log_metric("test_precision", test_metric.precision_score)
+            mlflow.log_metric("test_recall", test_metric.recall_score)
+            
+            # Calculate and log overfitting metrics
+            f1_diff = abs(train_metric.f1_score - test_metric.f1_score)
+            mlflow.log_metric("f1_score_diff", f1_diff)
+            mlflow.log_metric("overfitting_indicator", f1_diff > 0.1)
+            
+            # Infer and log model signature
+            try:
+                signature = infer_signature(X_train, best_model.predict(X_train))
+                mlflow.sklearn.log_model(
+                    best_model, 
+                    "model",
+                    signature=signature,
+                    registered_model_name=f"NetworkSecurity_{best_model_name.replace(' ', '_')}"
+                )
+            except Exception as e:
+                logging.info(f"Could not log model with signature: {e}")
+                mlflow.sklearn.log_model(best_model, "model")
+            
+            logging.info(f"MLflow tracking completed for {best_model_name}")
+
     def train_model(self, X_train, y_train, X_test, y_test):
+        # Configure MLflow
+        mlflow.set_tracking_uri("file:./mlruns")
+        mlflow.set_experiment("Network-Security-System")
+        
         models = {
             "Random Forest": RandomForestClassifier(verbose = 1, random_state=42), 
             "Decision Tree": DecisionTreeClassifier(random_state=42), 
@@ -110,6 +170,20 @@ class Modeltrainer:
         
         y_test_pred = best_model.predict(X_test)
         classification_test_metric = get_classification_score(y_true=y_test, y_pred=y_test_pred)
+        
+        # Get model parameters
+        model_params = best_model.get_params()
+        
+        ## Track the experiment with mlflow (single run for both train and test)
+        self.track_mlflow(
+            best_model=best_model,
+            best_model_name=best_model_name,
+            train_metric=classification_train_metric,
+            test_metric=classification_test_metric,
+            model_params=model_params,
+            X_train=X_train,
+            y_train=y_train
+        )
 
         preprocessor = load_object(file_path=self.data_transformation_artifact.transformed_object_file_path)
 
